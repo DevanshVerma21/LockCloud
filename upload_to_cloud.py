@@ -20,6 +20,10 @@ import os
 from mongo_config import MongoDBConfig
 import face_recognition
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables first
+load_dotenv()
 
 def upload_dataset_to_mongo():
     """Upload face encodings from dataset folder to MongoDB"""

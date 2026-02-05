@@ -203,46 +203,109 @@ def create_face_encodings_from_dataset():
         print("✗ No faces found in dataset!")
         return False
 
+def preprocess_image_for_recognition(image_np):
+    """Preprocess image to improve face recognition accuracy"""
+    try:
+        # Convert to RGB
+        rgb_image = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        
+        # Apply histogram equalization to improve contrast
+        # Convert to YCrCb color space
+        ycrcb = cv2.cvtColor(image_np, cv2.COLOR_BGR2YCrCb)
+        ycrcb[:, :, 0] = cv2.equalizeHist(ycrcb[:, :, 0])
+        enhanced = cv2.cvtColor(ycrcb, cv2.COLOR_YCrCb2BGR)
+        rgb_image = cv2.cvtColor(enhanced, cv2.COLOR_BGR2RGB)
+        
+        # Apply slight Gaussian blur to reduce noise
+        rgb_image = cv2.GaussianBlur(rgb_image, (3, 3), 0)
+        
+        # Sharpen the image slightly for better feature detection
+        kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+        rgb_image = cv2.filter2D(rgb_image, -1, kernel)
+        
+        return rgb_image
+    except:
+        # Fallback to simple conversion if preprocessing fails
+        return cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+
 def recognize_face_from_image(image_np):
-    """Recognize face from numpy image array"""
+    """Recognize face from numpy image array with optimized settings"""
     global known_face_encodings, known_face_names
     
     if not encodings_loaded or len(known_face_encodings) == 0:
         return None, "No face encodings loaded"
     
     try:
-        # Convert BGR to RGB (OpenCV uses BGR)
-        rgb_image = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        # Preprocess image for better recognition
+        rgb_image = preprocess_image_for_recognition(image_np)
         
-        # Find face locations and encodings
-        face_locations = face_recognition.face_locations(rgb_image, model='hog')
+        # Find face locations using HOG (faster than CNN)
+        # Try with different scales for better detection
+        face_locations = face_recognition.face_locations(rgb_image, model='hog', number_of_times_to_upsample=1)
         
         if len(face_locations) == 0:
             return None, "No face detected in image"
         
+        # Check face size - reject if too small or too far
+        top, right, bottom, left = face_locations[0]
+        face_height = bottom - top
+        face_width = right - left
+        image_height, image_width = rgb_image.shape[:2]
+        
+        face_area_ratio = (face_height * face_width) / (image_height * image_width)
+        
+        if face_area_ratio < 0.05:  # Face is too small (less than 5% of image)
+            return None, "Face too small or too far. Move closer to camera"
+        
+        # Get face encodings using 'large' model for accuracy
         face_encodings = face_recognition.face_encodings(rgb_image, face_locations, model='large')
         
         if len(face_encodings) == 0:
             return None, "Could not encode face"
         
-        # Compare with known faces
-        face_encoding = face_encodings[0]  # Use first face found
-        matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=0.6)
+        # Compare with known faces - LOWER TOLERANCE for better differentiation
+        face_encoding = face_encodings[0]
+        
+        # Tolerance: 0.45 = stricter matching, better differentiation between users
+        # Lower = more strict, Higher = more lenient
+        TOLERANCE = 0.45
+        MIN_CONFIDENCE = 52.0  # Minimum 52% confidence to accept
+        
+        matches = face_recognition.compare_faces(known_face_encodings, face_encoding, tolerance=TOLERANCE)
         
         name = None
         confidence = 0.0
         
-        # Use face distance to find best match
+        # Calculate face distances (lower = better match)
         face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
         
         if len(face_distances) > 0:
+            # Get best match
             best_match_index = np.argmin(face_distances)
+            best_distance = face_distances[best_match_index]
             
-            if matches[best_match_index]:
+            # Convert distance to confidence percentage (0-100%)
+            confidence = (1 - best_distance) * 100
+            
+            print(f"Best match: {known_face_names[best_match_index]}, Distance: {best_distance:.4f}, Confidence: {confidence:.1f}%")
+            
+            # Accept only if match is confirmed AND confidence is above threshold
+            if matches[best_match_index] and confidence >= MIN_CONFIDENCE:
                 name = known_face_names[best_match_index]
-                confidence = 1 - face_distances[best_match_index]
                 
-                return name, f"Recognized with {confidence*100:.1f}% confidence"
+                # Get all matches for this person to verify consistency
+                person_matches = [i for i, n in enumerate(known_face_names) if n == name]
+                person_distances = [face_distances[i] for i in person_matches]
+                avg_person_distance = np.mean(person_distances)
+                avg_confidence = (1 - avg_person_distance) * 100
+                
+                return name, f"Recognized with {avg_confidence:.1f}% confidence"
+            else:
+                # Log why recognition failed
+                if confidence < MIN_CONFIDENCE:
+                    return None, f"Confidence too low ({confidence:.1f}%). Face not in database"
+                else:
+                    return None, f"Face not recognized. No match found"
         
         return None, "Face not recognized"
         
