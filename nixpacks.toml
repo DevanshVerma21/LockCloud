@@ -1,8 +1,9 @@
 # nixpacks.toml - Railway build configuration
 # This file ensures CMake and build tools are available for face-recognition (dlib)
+# Also includes zbar for QR code detection
 
 [phases.setup]
-nixPkgs = ["python311", "gcc", "cmake"]
+nixPkgs = ["python311", "gcc", "cmake", "zbar"]
 
 [phases.install]
 cmds = [
