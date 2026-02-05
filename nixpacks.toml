@@ -1,0 +1,17 @@
+# nixpacks.toml - Railway build configuration
+# This file ensures CMake and build tools are available for face-recognition (dlib)
+
+[phases.setup]
+nixPkgs = ["python311", "gcc", "cmake"]
+
+[phases.install]
+cmds = [
+    "python -m venv --copies /opt/venv",
+    ". /opt/venv/bin/activate && pip install -r requirements.txt"
+]
+
+[phases.build]
+cmds = []
+
+[start]
+cmd = "gunicorn cloud_server:app --workers 2 --threads 4 --timeout 120"

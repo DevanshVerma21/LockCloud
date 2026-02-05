@@ -294,18 +294,15 @@ def validate_qr_code(qr_data):
 # ==================== WHATSAPP NOTIFICATION ====================
 
 def send_whatsapp_notification(message):
-    """Send WhatsApp notification (async)"""
+    """Send WhatsApp notification (async) - Not available in cloud environment"""
     if not ENABLE_WHATSAPP:
         return
     
-    try:
-        import pywhatkit
-        # Send immediately (will open WhatsApp Web)
-        now = datetime.now()
-        pywhatkit.sendwhatmsg(ADMIN_PHONE, message, now.hour, now.minute + 1)
-        print(f"WhatsApp notification sent to {ADMIN_PHONE}")
-    except Exception as e:
-        print(f"Failed to send WhatsApp: {e}")
+    # WhatsApp notifications disabled in cloud (requires pywhatkit which needs GUI)
+    # For cloud notifications, consider using Twilio, SendGrid, or webhook integrations
+    print(f"⚠️ WhatsApp notifications not available in cloud environment")
+    print(f"   Message would have been sent: {message}")
+    print(f"   Consider integrating Twilio API for SMS/WhatsApp in production")
 
 # ==================== API ENDPOINTS ====================
 
