@@ -1,0 +1,37 @@
+[Unit]
+Description=Raspberry Pi Door Lock System - QR & Face Recognition
+After=network-online.target
+Wants=network-online.target
+Documentation=https://github.com/your-repo/door-lock-system
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/pi/door_lock
+EnvironmentFile=/etc/door_lock.env
+
+# Main executable
+ExecStart=/usr/bin/python3 /home/pi/door_lock/raspberry_pi_door_lock.py
+
+# Restart policy
+Restart=always
+RestartSec=10
+StartLimitInterval=200
+StartLimitBurst=5
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=door_lock
+
+# Security settings
+NoNewPrivileges=false
+PrivateTmp=false
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

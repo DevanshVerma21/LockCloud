@@ -1,0 +1,58 @@
+# Railway Deployment - Ignore these files/folders
+# This prevents large files from being uploaded to Railway
+
+# Dataset folder (can contain many large images)
+dataset/
+dataset/*
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment files (set these in Railway dashboard instead)
+.env
+.env.local
+.env.production
+
+# Logs
+logs/
+*.log
+
+# Face encodings (will be generated on server)
+*.pkl
+face_encodings.pkl
+
+# Git files
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation (not needed on server)
+*.md
+!README.md
+
+# Test files
+test_*.py
+
+# Development files
+.env.example
+
+# Raspberry Pi specific files (not needed on cloud server)
+raspberry_pi_door_lock.py
+requirements_pi.txt
+install_pi.sh
+deploy_to_pi.bat
+door_lock.service
+test_system.py
+
+# Large temporary files
+*.zip
+*.tar
+*.tar.gz
