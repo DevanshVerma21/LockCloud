@@ -3,8 +3,8 @@
 # Also includes zbar for QR code detection
 
 [phases.setup]
-nixPkgs = ["python311", "gcc", "cmake", "zbar"]
-aptPkgs = ["libzbar0", "libzbar-dev"]
+nixPkgs = ["python311", "gcc", "cmake", "zbar", "pkg-config"]
+aptPkgs = ["libzbar0", "libzbar-dev", "libgl1", "libglib2.0-0", "libsm6", "libxext6", "libxrender-dev", "libgomp1", "libopenblas-dev", "liblapack-dev"]
 
 [phases.install]
 cmds = [
