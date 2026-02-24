@@ -555,7 +555,13 @@ def initialize_system():
     print("="*50 + "\n")
     
     # Load face encodings
-    load_face_encodings()
+    if not load_face_encodings():
+        # If loading failed, try to create from dataset
+        print("\n⚠ No encodings found. Creating from dataset folder...")
+        if create_face_encodings_from_dataset():
+            print("✓ Successfully created encodings from dataset")
+        else:
+            print("❌ Failed to create encodings. Face recognition will not work.")
     
     print("\n" + "="*50)
     print("Server Ready!")
