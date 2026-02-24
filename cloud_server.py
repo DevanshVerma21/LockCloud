@@ -394,6 +394,60 @@ def status():
         'timestamp': datetime.now().isoformat()
     })
 
+@app.route('/api/debug/dataset', methods=['GET'])
+def debug_dataset():
+    """Debug endpoint to check dataset and trigger encoding creation"""
+    try:
+        # Check dataset folder
+        dataset_exists = os.path.exists(DATASET_PATH)
+        dataset_info = {
+            'dataset_path': DATASET_PATH,
+            'dataset_exists': dataset_exists,
+            'people': [],
+            'total_images': 0
+        }
+        
+        if dataset_exists:
+            for person_name in os.listdir(DATASET_PATH):
+                person_folder = os.path.join(DATASET_PATH, person_name)
+                if os.path.isdir(person_folder):
+                    images = [f for f in os.listdir(person_folder) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+                    dataset_info['people'].append({
+                        'name': person_name,
+                        'image_count': len(images),
+                        'images': images[:5]  # Show first 5
+                    })
+                    dataset_info['total_images'] += len(images)
+        
+        return jsonify({
+            'dataset_info': dataset_info,
+            'encodings_loaded': encodings_loaded,
+            'current_encodings': len(known_face_encodings),
+            'base_dir': BASE_DIR,
+            'message': 'Use POST to this endpoint to trigger encoding creation'
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/debug/create-encodings', methods=['POST'])
+def debug_create_encodings():
+    """Manually trigger encoding creation from dataset"""
+    try:
+        result = create_face_encodings_from_dataset()
+        return jsonify({
+            'success': result,
+            'encodings_loaded': encodings_loaded,
+            'known_faces': len(set(known_face_names)),
+            'total_encodings': len(known_face_encodings),
+            'message': 'Encoding creation completed' if result else 'Failed to create encodings'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Error during encoding creation'
+        }), 500
+
 @app.route('/api/verify-qr', methods=['POST'])
 def verify_qr():
     """Verify QR code from ESP32-CAM"""
