@@ -621,12 +621,12 @@ def initialize_system():
     print("Server Ready!")
     print("="*50 + "\n")
 
+# Initialize on module load (works with gunicorn workers)
+initialize_system()
+
 # ==================== MAIN ====================
 
 if __name__ == '__main__':
-    # Initialize system
-    initialize_system()
-    
     # Get port from environment (Railway, Heroku, etc.)
     port = int(os.environ.get('PORT', 5000))
     
