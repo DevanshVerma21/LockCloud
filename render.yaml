@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: door-lock-cloud-server
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn cloud_server:app --workers 2 --threads 4 --timeout 120
+    healthCheckPath: /api/status
+    envVars:
+      - key: MONGO_URI
+        name: MongoDB Connection URI
+        sync: false
+      - key: QR_HASH
+        name: QR Code Hash (SHA256)
+        sync: false
+      - key: ADMIN_PASSWORD
+        name: Admin Password
+        sync: false
+      - key: ENABLE_WHATSAPP
+        value: false
+      - key: PYTHON_VERSION
+        value: 3.9.16

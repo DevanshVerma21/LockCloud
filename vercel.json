@@ -1,0 +1,21 @@
+{
+  "name": "door-lock-cloud-server",
+  "version": 2,
+  "builds": [
+    {
+      "src": "cloud_server.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "cloud_server.py"
+    }
+  ],
+  "env": {
+    "MONGO_URI": "@mongo_uri",
+    "QR_HASH": "@qr_hash",
+    "ADMIN_PASSWORD": "@admin_password"
+  }
+}

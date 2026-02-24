@@ -35,9 +35,9 @@ face_encodings.pkl
 logs/
 *.log
 
-# Dataset (face images - don't commit personal photos)
-dataset/*/
-!dataset/.gitkeep
+# Dataset (face images - INCLUDED for cloud deployment)
+# dataset/*/
+# !dataset/.gitkeep
 
 # IDE
 .vscode/
